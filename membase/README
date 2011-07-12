@@ -1,7 +1,3 @@
-Update the privileges using the following command.. 
+Integration for Membase database as a service into cloudfoundry.
 
-use mysql;
-update user set host='%' where user='root' and host='YOURHOSTNAME';
-flush privileges;
-
-Also don't forget to edit /etc/mysql/my.cnf to update the bind-address to 0.0.0.0 so other hosts can access the DB.
+See: http://www.couchbase.com

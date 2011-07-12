@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 # Copyright (c) 2009-2011 VMware, Inc.
+# Copyright (c) 2011 Couchbase, Inc.
 
 ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../../Gemfile", __FILE__)
 
@@ -8,15 +9,15 @@ require "bundler/setup"
 
 $LOAD_PATH.unshift(File.expand_path("../../lib", __FILE__))
 
-require "mysql_service/util"
-require "mysql_service/node"
+require "membase_service/util"
+require "membase_service/node"
 
-include VCAP::Services::Mysql::Util
+include VCAP::Services::Membase::Util
 
-config_file = File.expand_path("../../config/mysql_node.yml", __FILE__)
+config_file = File.expand_path("../../config/membase_node.yml", __FILE__)
 
 OptionParser.new do |opts|
-  opts.banner = "Usage: mysql_node [options]"
+  opts.banner = "Usage: membase_node [options]"
   opts.on("-c", "--config [ARG]", "Configuration File") do |opt|
     config_file = opt
   end
@@ -52,7 +53,7 @@ options = {
   :node_id => parse_property(config, "node_id", String),
   :mbus => parse_property(config, "mbus", String),
   :local_db => parse_property(config, "local_db", String),
-  :mysql => parse_property(config, "mysql", Hash),
+  :membase => parse_property(config, "membase", Hash),
   :ip_route => parse_property(config, "ip_route", String, :optional => true),
   :socket => parse_property(config, "socket", String, :optional => true)
 }
@@ -76,7 +77,7 @@ end
 File.open(pid_file, 'w') { |f| f.puts "#{Process.pid}" }
 
 EM.run do
-  node = VCAP::Services::Mysql::Node.new(options)
+  node = VCAP::Services::Membase::Node.new(options)
   trap("INT") {shutdown(node)}
   trap("TERM") {shutdown(node)}
 end

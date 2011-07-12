@@ -1,15 +1,15 @@
 ---
-local_db: sqlite3:/var/vcap/services/mysql/mysql_node.db
-base_dir: /var/vcap/services/mysql/
+local_db: sqlite3:/var/vcap/services/membase/membase_node.db
+base_dir: /var/vcap/services/membase/
 ip_route: 127.0.0.1
 mbus: nats://localhost:4222
 log_level: DEBUG
-pid: /var/vcap/sys/run/mysql_node.pid
+pid: /var/vcap/sys/run/membase_node.pid
 available_storage: 1024
-node_id: mysql_node_1
+node_id: membase_node_1
 max_db_size: 20
 max_long_query: 3
-mysql:
+membase:
   host: 127.0.0.1
   port: 3306
   user: root

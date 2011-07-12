@@ -2,6 +2,7 @@
 # -*- mode: ruby -*-
 #
 # Copyright (c) 2009-2011 VMware, Inc.
+# Copyright (c) 2011 Couchbase, Inc.
 
 ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../../Gemfile", __FILE__)
 
@@ -19,13 +20,13 @@ require 'yaml'
 
 require 'common/asynchronous_service_gateway'
 require 'common/util'
-require 'mysql_service/provisioner'
+require 'membase_service/provisioner'
 require 'vcap/common'
 
-config_file = File.expand_path("../../config/mysql_gateway.yml", __FILE__)
+config_file = File.expand_path("../../config/membase_gateway.yml", __FILE__)
 
 OptionParser.new do |opts|
-  opts.banner = "Usage: mysql_gateway [options]"
+  opts.banner = "Usage: membase_gateway [options]"
 
   opts.on("-c", "--config [ARG]", "Configuration File") do |opt|
     config_file = opt
@@ -67,12 +68,12 @@ config[:service][:url]   = "http://#{config[:host]}:#{config[:port]}"
 
 # Go!
 EM.run do
-  sp = VCAP::Services::Mysql::Provisioner.new(
+  sp = VCAP::Services::Membase::Provisioner.new(
     :logger   => logger,
     :version  => config[:service][:version],
     :local_ip => config[:host],
     :service_mbus => config[:service_mbus],
-    :mysql_mbus   => config[:mysql_mbus],
+    :membase_mbus => config[:membase_mbus],
     :node_timeout => config[:node_timeout]
   ).start()
 

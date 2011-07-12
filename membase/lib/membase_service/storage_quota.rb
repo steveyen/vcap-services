@@ -1,9 +1,11 @@
 # Copyright (c) 2009-2011 VMware, Inc.
+# Copyright (c) 2011 Couchbase, Inc.
+
 require "mysql"
 
-module VCAP; module Services; module Mysql; end; end; end
+module VCAP; module Services; module Membase; end; end; end
 
-class VCAP::Services::Mysql::Node
+class VCAP::Services::Membase::Node
 
   DATA_LENGTH_FIELD = 6
 

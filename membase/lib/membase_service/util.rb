@@ -1,7 +1,9 @@
 # Copyright (c) 2009-2011 VMware, Inc.
+# Copyright (c) 2011 Couchbase, Inc.
+
 module VCAP
   module Services
-    module Mysql
+    module Membase
 
       # FIXME this should probably go into common
       module Util

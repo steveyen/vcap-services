@@ -1,15 +1,17 @@
 # Copyright (c) 2009-2011 VMware, Inc.
+# Copyright (c) 2011 Membase, Inc.
+
 require "eventmachine"
 require "thread"
 
 module VCAP
   module Services
-    module Mysql
+    module Membase
     end
   end
 end
 
-class VCAP::Services::Mysql::Barrier
+class VCAP::Services::Membase::Barrier
 
   def initialize(options = {}, &callback)
     raise ArgumentError unless options[:timeout] || options[:callbacks]

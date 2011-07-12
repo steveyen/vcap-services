@@ -1,9 +1,10 @@
 # Copyright (c) 2009-2011 VMware, Inc.
+# Copyright (c) 2011 Couchbase, Inc.
+
 require "erb"
 require "fileutils"
 require "logger"
 require "pp"
-#require "set"
 
 require "datamapper"
 require "nats/client"
@@ -15,18 +16,18 @@ require 'vcap/component'
 
 $:.unshift(File.dirname(__FILE__))
 
-require "mysql_service/util"
-require "mysql_service/storage_quota"
+require "membase_service/util"
+require "membase_service/storage_quota"
 
-module VCAP; module Services; module Mysql; end; end; end
+module VCAP; module Services; module Membase; end; end; end
 
-class VCAP::Services::Mysql::Node
+class VCAP::Services::Membase::Node
 
   KEEP_ALIVE_INTERVAL = 15
   LONG_QUERY_INTERVAL = 1
   STORAGE_QUOTA_INTERVAL = 1
 
-  include VCAP::Services::Mysql::Util
+  include VCAP::Services::Membase::Util
 
   class ProvisionedService
     include DataMapper::Resource
@@ -39,19 +40,19 @@ class VCAP::Services::Mysql::Node
 
   def initialize(options)
     @logger = options[:logger]
-    @logger.info("Starting Mysql-Service-Node..")
+    @logger.info("Starting Membase-Service-Node..")
 
     @local_ip = VCAP.local_ip(options[:ip_route])
 
     @node_id = options[:node_id]
-    @mysql_config = options[:mysql]
+    @membase_config = options[:membase]
 
     @max_db_size = options[:max_db_size] * 1024 * 1024
     @max_long_query = options[:max_long_query]
 
-    @connection = mysql_connect
+    @connection = membase_connect
 
-    EM.add_periodic_timer(KEEP_ALIVE_INTERVAL) {mysql_keep_alive}
+    EM.add_periodic_timer(KEEP_ALIVE_INTERVAL) {membase_keep_alive}
     EM.add_periodic_timer(LONG_QUERY_INTERVAL) {kill_long_queries}
     EM.add_periodic_timer(STORAGE_QUOTA_INTERVAL) {enforce_storage_quota}
 
@@ -73,10 +74,9 @@ class VCAP::Services::Mysql::Node
     @nats = NATS.connect(:uri => options[:mbus]) {on_connect}
 
     VCAP::Component.register(:nats => @nats,
-                            :type => 'Mysql-Service-Node',
+                            :type => 'Membase-Service-Node',
                             :host => @local_ip,
                             :config => options)
-
   end
 
   def check_db_consistency()
@@ -85,7 +85,7 @@ class VCAP::Services::Mysql::Node
     ProvisionedService.all.each do |service|
       db, user = service.name, service.user
       if not db_list.include?([db, user]) then
-        @logger.info("Node database inconsistent!!! db:user <#{db}:#{user}> not in mysql.")
+        @logger.info("Node database inconsistent!!! db:user <#{db}:#{user}> not in membase.")
         next
       end
     end
@@ -99,29 +99,29 @@ class VCAP::Services::Mysql::Node
     end
   end
 
-  def mysql_connect
-    host, user, password, port, socket =  %w{host user pass port socket}.map { |opt| @mysql_config[opt] }
+  def membase_connect
+    host, user, password, port, socket =  %w{host user pass port socket}.map { |opt| @membase_config[opt] }
 
     5.times do
       begin
-        return Mysql.real_connect(host, user, password, 'mysql', port.to_i, socket)
-      rescue Mysql::Error => e
-        @logger.info("MySQL connection attempt failed: [#{e.errno}] #{e.error}")
+        return Membase.real_connect(host, user, password, 'membase', port.to_i, socket)
+      rescue Membase::Error => e
+        @logger.info("Membase connection attempt failed: [#{e.errno}] #{e.error}")
         sleep(5)
       end
     end
 
-    @logger.fatal("MySQL connection unrecoverable")
+    @logger.fatal("Membase connection unrecoverable")
     shutdown
     exit
   end
 
   #keep connection alive, and check db liveness
-  def mysql_keep_alive
+  def membase_keep_alive
     @connection.ping()
-  rescue Mysql::Error => e
-    @logger.info("MySQL connection lost: [#{e.errno}] #{e.error}")
-    @connection = mysql_connect
+  rescue Membase::Error => e
+    @logger.info("Membase connection lost: [#{e.errno}] #{e.error}")
+    @connection = membase_connect
   end
 
   def kill_long_queries
@@ -133,8 +133,8 @@ class VCAP::Services::Mysql::Node
         @logger.info("Killed long query: user:#{user} db:#{db} time:#{time} info:#{info}")
       end
     end
-  rescue Mysql::Error => e
-    @logger.info("MySQL error: [#{e.errno}] #{e.error}")
+  rescue Membase::Error => e
+    @logger.info("Membase error: [#{e.errno}] #{e.error}")
   end
 
   def shutdown
@@ -172,7 +172,7 @@ class VCAP::Services::Mysql::Node
     response = {
       "node_id" => @node_id,
       "hostname" => @local_ip,
-      "port" => @mysql_config['port'],
+      "port" => @membase_config['port'],
       "password" => provisioned_service.password,
       "name" => provisioned_service.name,
       "user" => provisioned_service.user
@@ -237,7 +237,7 @@ class VCAP::Services::Mysql::Node
       @connection.query("DROP DATABASE #{name}")
       @connection.query("DROP USER #{user}")
       @connection.query("DROP USER #{user}@'localhost'")
-    rescue Mysql::Error => e
+    rescue Membase::Error => e
       @logger.fatal("Could not delete database: [#{e.errno}] #{e.error}")
     end
   end

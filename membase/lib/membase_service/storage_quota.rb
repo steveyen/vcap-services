@@ -64,24 +64,24 @@ class VCAP::Services::Membase::Node
   end
 
   def enforce_storage_quota
-    @connection.select_db('mysql')
-    ProvisionedService.all.each do |service|
-      db, user, quota_exceeded = service.name, service.user, service.quota_exceeded
-      size = db_size(db)
-
-      if (size >= @max_db_size) and not quota_exceeded then
-        revoke_write_access(db, service)
-        @logger.info("Storage quota exceeded :" + fmt_db_listing(user, db, size) +
-                     " -- access revoked")
-      elsif (size < @max_db_size) and quota_exceeded then
-        grant_write_access(db, service)
-        @logger.info("Below storage quota:" + fmt_db_listing(user, db, size) +
-                     " -- access restored")
-      end
-    end
-    rescue Mysql::Error => e
-      @logger.warn("MySQL exception: [#{e.errno}] #{e.error}\n" +
-                   e.backtrace.join("\n"))
+    # @connection.select_db('mysql')
+    # ProvisionedService.all.each do |service|
+    #   db, user, quota_exceeded = service.name, service.user, service.quota_exceeded
+    #   size = db_size(db)
+    #
+    #   if (size >= @max_db_size) and not quota_exceeded then
+    #     revoke_write_access(db, service)
+    #     @logger.info("Storage quota exceeded :" + fmt_db_listing(user, db, size) +
+    #                  " -- access revoked")
+    #   elsif (size < @max_db_size) and quota_exceeded then
+    #     grant_write_access(db, service)
+    #     @logger.info("Below storage quota:" + fmt_db_listing(user, db, size) +
+    #                  " -- access restored")
+    #   end
+    # end
+    # rescue Mysql::Error => e
+    #   @logger.warn("MySQL exception: [#{e.errno}] #{e.error}\n" +
+    #                e.backtrace.join("\n"))
   end
 
 end

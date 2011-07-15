@@ -7,8 +7,7 @@ log_level: DEBUG
 pid: /var/vcap/sys/run/membase_node.pid
 available_storage: 1024
 node_id: membase_node_1
-max_db_size: 20
-max_long_query: 3
+max_ram_mb_per_server: 500
 membase:
   host: 127.0.0.1
   port: 3306

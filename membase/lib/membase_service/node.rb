@@ -47,8 +47,7 @@ class VCAP::Services::Membase::Node
     @node_id = options[:node_id]
     @membase_config = options[:membase]
 
-    @max_db_size = options[:max_db_size] * 1024 * 1024
-    @max_long_query = options[:max_long_query]
+    @max_ram_mb_per_server = options[:max_ram_mb_per_server]
 
     @connection = membase_connect
 
@@ -93,7 +92,7 @@ class VCAP::Services::Membase::Node
 
   def storage_for_service(provisioned_service)
     case provisioned_service.plan
-    when :free then @max_db_size
+    when :free then @max_ram_mb_per_server
     else
       raise "Invalid plan: #{provisioned_service.plan}"
     end
@@ -128,10 +127,10 @@ class VCAP::Services::Membase::Node
     process_list = @connection.list_processes
     process_list.each do |proc|
       thread_id, user, _, db, command, time, _, info = proc
-      if (time.to_i >= @max_long_query) and (command == 'Query') and (user != 'root') then
-        @connection.query("KILL QUERY " + thread_id)
-        @logger.info("Killed long query: user:#{user} db:#{db} time:#{time} info:#{info}")
-      end
+      # if (time.to_i >= @max_long_query) and (command == 'Query') and (user != 'root') then
+      #   @connection.query("KILL QUERY " + thread_id)
+      #   @logger.info("Killed long query: user:#{user} db:#{db} time:#{time} info:#{info}")
+      # end
     end
   rescue Membase::Error => e
     @logger.info("Membase error: [#{e.errno}] #{e.error}")
